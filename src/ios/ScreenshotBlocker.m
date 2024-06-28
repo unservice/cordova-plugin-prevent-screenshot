@@ -35,13 +35,36 @@ UIImageView* cover;
     /*
      userDidTakeScreenshotNotification
      */
-
 }
 
 - (void)enable:(CDVInvokedUrlCommand *)command
 {
     CDVPluginResult* pluginResult = nil;
     NSLog(@"Abilita observers");
+    
+    CDVAppDelegate *appDelegate = (CDVAppDelegate *)[UIApplication sharedApplication].delegate;
+    UIWindow *mainWindow = appDelegate.window;
+
+    CDVAppDelegate *appDelegate = (CDVAppDelegate *)[UIApplication sharedApplication].delegate;
+    UIWindow *mainWindow = appDelegate.window;
+
+    self.field = [[UITextField alloc] init];
+    self.field.secureTextEntry = YES;
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.field.frame.size.width, self.field.frame.size.height)];
+    [view addSubview:self.field];
+    self.field.leftView = view;
+    self.field.leftViewMode = UITextFieldViewModeAlways;
+    
+    if (self.originalLayer == nil) {
+        self.originalLayer = mainWindow.layer;
+    }
+    [mainWindow.layer.superlayer addSublayer:self.field.layer];
+    [[self.field.layer.sublayers lastObject] addSublayer:mainWindow.layer];
+   
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+    
     /*
      [[NSNotificationCenter defaultCenter]addObserver:self
      selector:@selector(appDidBecomeActive)
@@ -59,7 +82,25 @@ UIImageView* cover;
      [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
      */
 }
--(void)listen:(CDVInvokedUrlCommand*)command {
+
+- (void)disable:(CDVInvokedUrlCommand *)command
+{
+    CDVPluginResult* pluginResult = nil;
+    NSLog(@"Abilita observers");
+
+    if (self.field == nil) {
+        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+    } else {
+        [self.field.layer.superlayer addSublayer:self.originalLayer];
+        [self.field.layer removeFromSuperlayer];
+        self.field = nil;
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }
+    
+}
+
+- (void)listen:(CDVInvokedUrlCommand*)command {
     _eventCommand = command;
 }
 
